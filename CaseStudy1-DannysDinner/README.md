@@ -1,4 +1,4 @@
-# Danny's Dinner 🍜
+# 🍜 Danny's Dinner 🍜
 
 ## Overview
 
@@ -14,5 +14,22 @@ Danny’s Diner contains 3 tables:
 - `members` – customer_id, join_date  
 
 These tables can be found [on the official challenge site](https://8weeksqlchallenge.com/case-study-1/).
+
+## Questions and Solutions
+
+### Q1. What is the total amount each customer spent at the restaurant?
+
+```sql
+ SELECT sales.customer_id, SUM(menu.price) AS money_spent 
+ FROM sales
+ INNER JOIN menu
+ 	ON sales.product_id = menu.product_id
+ GROUP BY customer_id 
+ ORDER BY customer_id ASC;
+```
+
+
+
+
 
 
