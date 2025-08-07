@@ -19,6 +19,8 @@ These tables can be found [on the official challenge site](https://8weeksqlchall
 
 ### Q1. What is the total amount each customer spent at the restaurant?
 
+To calculate each customer's total spending, I joined the "sales" and "menu" tables on "product_id", then aggregated the "price" column and grouped the results by "customer_id".
+
 ```sql
  SELECT sales.customer_id, SUM(menu.price) AS money_spent 
  FROM sales
@@ -28,6 +30,29 @@ These tables can be found [on the official challenge site](https://8weeksqlchall
  ORDER BY customer_id ASC;
 ```
 
+### Q2. How many days has each customer visited the restaurant?
+
+```sql
+SELECT customer_id, COUNT(DISTINCT(order_date)) AS No_of_Days
+FROM sales
+GROUP BY customer_id;
+```
+
+### Q3. What was the first item from the menu purchased by each customer?
+
+### Q4. What is the most purchased item on the menu and how many times was it purchased by all customers?
+
+### Q5. Which item was the most popular for each customer?
+
+### Q6. Which item was purchased first by the customer after they became a member?
+
+### Q7. Which item was purchased just before the customer became a member?
+
+### Q8. What is the total items and amount spent for each member before they became a member?
+
+### Q9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+### Q10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 
 
 
