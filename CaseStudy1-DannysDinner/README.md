@@ -40,6 +40,36 @@ GROUP BY customer_id;
 
 ### Q3. What was the first item from the menu purchased by each customer?
 
+```sql
+WITH fp1 AS
+(
+SELECT 
+	customer_id, 
+	MIN(order_date) AS first_visit
+FROM sales
+GROUP BY customer_id
+),
+fp2 AS
+(
+SELECT 
+	fp1.customer_id, 
+	fp1.first_visit, 
+	sales.product_id,
+	ROW_NUMBER() OVER(PARTITION BY fp1.customer_id) AS rn
+FROM fp1
+JOIN sales
+	ON fp1.customer_id = sales.customer_id
+	AND fp1.first_visit = sales.order_date
+)
+SELECT 
+	customer_id, 
+	product_name
+FROM fp2
+JOIN menu
+	ON fp2.product_id = menu.product_id
+WHERE rn = 1
+```
+
 ### Q4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
 ### Q5. Which item was the most popular for each customer?
