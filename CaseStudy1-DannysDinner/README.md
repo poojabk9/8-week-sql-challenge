@@ -38,6 +38,14 @@ FROM sales
 GROUP BY customer_id;
 ```
 
+### Output:
+| customer_id | product_name | 
+| ----------- | ------------ |
+| A			  |				4|
+| B			  |				6|
+| C			  |				2|
+
+
 ### Q3. What was the first item from the menu purchased by each customer?
 
 ```sql
