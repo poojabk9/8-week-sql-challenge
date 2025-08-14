@@ -132,6 +132,67 @@ Output:
 
 ### Q4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
+Approach 1: Simple Solution
+- Join the `sales` table with the `menu` table on `product_id` to get the product names for each sale.
+- Group the results by `product_name` to aggregate purchases for each item.
+- Count the number of times each product was purchased using COUNT(*).
+- Sort the results in descending order of purchase count so the most popular item is first.
+- Limit the output to the top result using LIMIT 1 (assuming no need to handle ties).
+
+```sql
+SELECT 
+	m.product_name, 
+	COUNT(*) AS purchase_count
+FROM sales s
+JOIN menu m
+ ON s.product_id = m.product_id
+GROUP BY m.product_name
+ORDER BY purchase_count DESC
+LIMIT 1
+```
+
+Approach 2: Handeling ties (In case there are more than one popular item)
+- Aggregate purchases per product in a CTE (CTE1) by grouping sales on `product_id` and counting how many times each product was sold.
+- Join the aggregated results with the `menu` table to get the product names.
+- In a second CTE (CTE2), assign ranks to products using the RANK() window function, ordered by `purchase_count` descending.
+- Filter to only include rows where `rnk = 1`, ensuring all top-ranked items appear in case of a tie.
+
+```sql
+WITH CTE1 AS
+(
+	SELECT
+		product_id,
+		COUNT(product_id) AS purchase_count
+	FROM sales
+	GROUP BY product_id
+),
+CTE2 As
+(
+	SELECT
+		m.product_name,
+		purchase_count, 
+		RANK() OVER (ORDER BY purchase_count DESC) AS rnk
+	FROM CTE c
+	JOIN menu m
+		ON c.product_id = m.product_id
+)
+SELECT
+	product_name,
+	purchase_count
+FROM CTE2
+Where rnk = 1
+```
+
+Output:
+- `product_name` -> Name of the most purchased Item on the Menu.
+- `purchase_count` -> Number of times the Item was purchased.
+
+| product_name | purchase_count |
+|--------------|----------------|
+| ramen		   |		       8|
+
+***
+
 ### Q5. Which item was the most popular for each customer?
 
 ### Q6. Which item was purchased first by the customer after they became a member?
