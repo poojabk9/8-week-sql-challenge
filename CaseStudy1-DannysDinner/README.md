@@ -195,13 +195,71 @@ Output:
 
 ### Q5. Which item was the most popular for each customer?
 
+Approach:
+- Created a CTE `item_count` to calculate how many times each customer purchased each product by grouping `sales` table on `customer_id` and `product_id` and applying `COUNT(product_id)`.
+- Created a second CTE `ranking_product_count` by joining `item_count` with the `menu` table on `product_id` to get the product names.
+- Used the `RANK()` window function, partitioned by `customer_id` and ordered by `product_count` in descending order, to rank each product for every customer.
+- Filtered the results to only include rows where `rnk = 1`, returning each customer’s most frequently purchased product(s), including ties.
+
+```sql
+WITH item_count AS
+(
+	SELECT 
+		customer_id, 
+		product_id, 
+		COUNT(product_id) AS product_count
+	FROM sales
+	GROUP BY customer_id, product_id
+),
+ranking_product_count AS
+(
+	SELECT 
+		customer_id, 
+		i.product_id, 
+		product_count,
+		RANK() OVER(PARTITION BY customer_id ORDER BY product_count DESC) AS rnk, m.product_name
+	FROM item_count i
+	JOIN menu m
+		ON i.product_id = m.product_id
+)
+SELECT 
+	customer_id, 
+	product_name, 
+	product_count
+FROM ranking_product_count
+WHERE rnk = 1
+```
+
+Output:
+- customer_id -> Identifies the customer.
+- product_name -> Most purchased product.
+- product_count -> Number of times the product was brought.
+  
+| customer_id | product_name | purchase_count |
+|-------------|--------------|----------------|
+| A      	  | ramen        |              3 |
+| B      	  | curry        |              2 |
+| B      	  | sushi        |              2 |
+| B      	  | ramen        |              2 |
+| C      	  | ramen        |              3 |
+
+***
+
 ### Q6. Which item was purchased first by the customer after they became a member?
+
+***
 
 ### Q7. Which item was purchased just before the customer became a member?
 
+***
+
 ### Q8. What is the total items and amount spent for each member before they became a member?
 
+***
+
 ### Q9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+***
 
 ### Q10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 
