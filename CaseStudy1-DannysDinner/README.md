@@ -247,6 +247,46 @@ Output:
 
 ### Q6. Which item was purchased first by the customer after they became a member?
 
+Approach:
+- Created a CTE membership that joins the sales and members tables to identify purchases made after a customer’s membership join date.
+- Applied DENSE_RANK() partitioned by customer_id and ordered by order_date to rank purchases for each member starting from their join date.
+- Selected only the first ranked purchase (rnk = 1) for each customer.
+- Joined with the menu table to retrieve product names.
+- Displayed the results ordered by customer_id for clarity.
+
+```sql
+WITH members_first_order AS
+(
+	SELECT
+		s.customer_id,
+		join_date,
+		order_date,
+		product_id,
+		DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY order_date) AS rnk
+	FROM sales s
+	JOIN members m
+		ON s.customer_id = m.customer_id
+	WHERE order_date >= join_date
+)
+SELECT
+	customer_id,
+	product_name
+FROM members_first_order m1
+JOIN menu m2
+	ON m1.product_id = m2.product_id
+WHERE rnk = 1
+ORDER BY customer_id
+```
+
+Output:
+- customer_id -> Identifies the customer.
+- product_name -> First product purchased after becoming a member.
+
+| customer_id | product_name |
+|-------------|--------------|
+| A		      |	        curry|
+| B		      |	        sushi|
+
 ***
 
 ### Q7. Which item was purchased just before the customer became a member?
