@@ -54,9 +54,9 @@ Output:
 #### Q2. How many days has each customer visited the restaurant?
 
 Approach:
-- I selected `customer_id` and counted the distinct `order_date` values for each customer to find the total number of unique days they visited the restaurant.
-- I used COUNT(DISTINCT ...) to ensure each day was counted only once per customer.
-- Then, I grouped the results by `customer_id`.
+- Selected `customer_id` and applied `COUNT(DISTINCT order_date)` to calculate the number of unique days each customer visited.
+- Ensured duplicate visits on the same day were counted only once per customer.
+- Grouped results by `customer_id` to summarize visits per customer.
   
 ```sql
 SELECT
@@ -290,6 +290,38 @@ Output:
 ***
 
 ### Q7. Which item was purchased just before the customer became a member?
+
+Approach:
+- Created a CTE `last_order` to capture each customer’s orders placed before their membership start date.
+- Used the `DENSE_RANK()` function with ORDER BY `order_date` DESC inside the CTE to rank orders in reverse chronological order, so the most recent pre-membership purchase gets rank 1.
+- Filtered only orders where `order_date < join_date` to ensure purchases were strictly before membership started.
+- Selected rows with `last_order_rank = 1` to identify the last order before becoming a member.
+- Joined with the menu table to fetch product names and ordered the results by `customer_id` for clarity.
+
+```sql
+WITH last_order AS
+(
+SELECT s.customer_id, join_date, order_date, product_id,
+DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY order_date DESC) AS last_order_rank
+FROM sales s
+JOIN members m
+	ON s.customer_id = m.customer_id
+WHERE order_date < join_date
+)
+SELECT customer_id, m.product_name
+FROM last_order l
+JOIN menu m
+	ON l.product_id = m.product_id
+WHERE last_order_rank = 1
+ORDER BY customer_id
+```
+
+Output:
+| customer_id | product_name |
+|-------------|--------------|
+| A		      |	        sushi|
+| A		      |	        curry|
+| B		      |	        sushi|
 
 ***
 
