@@ -327,6 +327,34 @@ Output:
 
 ### Q8. What is the total items and amount spent for each member before they became a member?
 
+Approach:
+- Selected `customer_id` from the `sales` table.
+- Joined the `members` table to filter orders placed before the `join_date`.
+- Joined the `menu` table to bring in product prices.
+- Counted `customer_id` to calculate the total number of items ordered before membership.
+- Summed `price` to find the total amount spent.
+- Grouped results by `customer_id` and ordered by `customer_id`.
+
+```sql
+SELECT 
+	s.customer_id, 
+	COUNT(s.customer_id) AS total_items, 
+	SUM(m.price) AS amount_spent
+FROM sales s
+JOIN members mb
+	ON s.customer_id = mb.customer_id AND s.order_date < mb.join_date
+JOIN menu m
+	ON s.product_id = m.product_id
+GROUP BY s.customer_id
+ORDER BY s.customer_id
+```
+
+Output:
+| customer_id | total_items | amount_spent |
+|-------------|-------------|--------------|
+| A		      |	           2|            25|
+| B		      |	           3|            40|
+
 ***
 
 ### Q9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
