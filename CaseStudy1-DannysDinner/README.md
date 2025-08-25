@@ -2,8 +2,9 @@
 <img src="https://8weeksqlchallenge.com/images/case-study-designs/1.png" alt=Image width=500 height=520>
 
 ## Overview
-- [Problem Statement](#problem_statement)
-- [Data Set](#data_set)
+- [Problem Statement](#problem-statement)
+- [Data Set](#data-set)
+- [Questions and Solutions](#questions-and-solutions)
 
 ### Problem Statement
 Danny wants to use the data to answer a few simple questions about his customers, especially about their visiting patterns, how much money they’ve spent and also which menu items are their favourite. Having this deeper connection with his customers will help him deliver a better and more personalised experience for his loyal customers.
