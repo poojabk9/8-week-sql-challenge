@@ -1,6 +1,9 @@
-# 🍜 Danny's Dinner 🍜
+
+<img src="https://8weeksqlchallenge.com/images/case-study-designs/1.png" alt=Image width=500 height=520>
 
 ## Overview
+- [Problem Statement](#problem_statement)
+- [Data Set](data_set)
 
 ### Problem Statement
 Danny wants to use the data to answer a few simple questions about his customers, especially about their visiting patterns, how much money they’ve spent and also which menu items are their favourite. Having this deeper connection with his customers will help him deliver a better and more personalised experience for his loyal customers.
@@ -279,8 +282,8 @@ ORDER BY customer_id
 ```
 
 Output:
-- customer_id -> Identifies the customer.
-- product_name -> First product purchased after becoming a member.
+- `customer_id` -> Identifies the customer.
+- `product_name` -> First product purchased after becoming a member.
 
 | customer_id | product_name |
 |-------------|--------------|
@@ -317,6 +320,9 @@ ORDER BY customer_id
 ```
 
 Output:
+- customer_id -> Identifies the customer.
+- product_name -> Product purchased just before becoming a member.
+  
 | customer_id | product_name |
 |-------------|--------------|
 | A		      |	        sushi|
@@ -350,6 +356,10 @@ ORDER BY s.customer_id
 ```
 
 Output:
+- `customer_id` -> Identifies the customer.
+- `total_items` -> Number of products purchased before becoming a member.
+- `amount_spent` -> Money spent before becoming a member.
+  
 | customer_id | total_items | amount_spent |
 |-------------|-------------|--------------|
 | A		      |	           2|            25|
@@ -359,11 +369,79 @@ Output:
 
 ### Q9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 
+Approach:
+- Joined `sales` and `menu` tables to access purchase details and prices.
+- Applied a CASE expression to calculate points: price * 20 for sushi, price * 10 for other items.
+- Summed the points for each customer.
+- Grouped by `customer_id` and ordered results.
+
+```sql
+SELECT 
+	s.customer_id,
+	SUM(
+		CASE
+			WHEN m.product_name = 'sushi' THEN (m.price * 20)
+			ELSE (m.price * 10)
+	END) AS points
+FROM sales s
+JOIN menu m
+	ON s.product_id = m.product_id
+GROUP BY s.customer_id
+ORDER BY s.customer_id
+```
+
+Output:
+- `customer_id` -> Identifies the customer.
+- `points` -> Points accumulated by each customers.
+
+| customer_id | points |
+|-------------|--------|
+| A		      |	    860|
+| B		      |     940|
+| C		      |	    360|
+  
 ***
 
 ### Q10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 
 
+Approach:
+- For the first 7 days after a customer’s join_date (including the join date itself), they earn 2× points on all items. After this period, the normal points rules apply: Sushi = 20 points per dollar and Other items = 10 points per dollar.
+- Created a CTE `members_points` to calculate points for each order by joining the `sales`, `menu`, and `members` tables.
+- Applied a `CASE` statement to handle the points logic: If `order_date` falls between `join_date` and `join_date + 6`, then all items earn double points `(price * 20)`. Otherwise, sushi earns `price * 20` and all other items earn `price * 10`.
+- Filtered results to only include orders placed on or before `2021-01-31`.
+- Aggregated the points using `SUM(points)` grouped by `customer_id` to get the final totals for each customer by the end of January.
 
+```sql
+WITH members_points AS 
+(
+SELECT s.customer_id, order_date, join_date, s.product_id, product_name, price,
+CASE
+	WHEN order_date BETWEEN join_date AND (join_date + 6) THEN (m.price * 20)
+	ELSE CASE 
+		WHEN m.product_name = 'sushi' THEN (m.price * 20)
+		ELSE (m.price * 10)
+	END
+END AS points
+FROM sales s
+JOIN members mb
+	ON s.customer_id = mb.customer_id
+JOIN menu m
+	ON s.product_id = m.product_id
+WHERE order_date <= '2021-01-31'
+)
+SELECT customer_id, SUM(points) AS points
+FROM members_points
+GROUP BY customer_id
+```
 
+Output:
+Output:
+- `customer_id` -> Identifies the customer.
+- `points` -> Points accumulated by members at the end of January.
+
+| customer_id | points |
+|-------------|--------|
+| A		      |	   1370|
+| B		      |     820|
 
