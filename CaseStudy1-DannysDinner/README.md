@@ -17,9 +17,11 @@ Danny’s Diner contains 3 tables:
 
 - `sales` – customer_id, order_date, product_id  
 - `menu` – product_id, product_name, price  
-- `members` – customer_id, join_date  
+- `members` – customer_id, join_date
 
-These tables can be found [on the official challenge site](https://8weeksqlchallenge.com/case-study-1/).
+#### Entity Relationship Diagram:
+
+![image](https://user-images.githubusercontent.com/81607668/127271130-dca9aedd-4ca9-4ed8-b6ec-1e1920dca4a8.png)
 
 ***
 
@@ -437,7 +439,6 @@ GROUP BY customer_id
 ```
 
 Output:
-Output:
 - `customer_id` -> Identifies the customer.
 - `points` -> Points accumulated by members at the end of January.
 
@@ -445,4 +446,108 @@ Output:
 |-------------|--------|
 | A		      |	   1370|
 | B		      |     820|
+
+***
+
+### Bonus Questions
+
+Join All The Things
+
+The following bonus tasks focus on creating consolidated data tables that Danny and his team can use to quickly derive insights without having to manually join the underlying tables.
+
+Task:
+Recreate the given output table by joining the available datasets (sales, menu, and members) in a way that produces a single unified view.
+
+Approach:
+- Started with the `sales` table as the base since it contains customer transactions.
+- Performed an `INNER JOIN` with the `menu table` on `product_id` to retrieve `product names` and `prices` for each order.
+- Used a `LEFT JOIN` with the `members` table on `customer_id` so that all sales are included even if a customer is not a member.
+- Created a `CASE` expression to assign member status: 'Y' if the `order_date` is on or after the `join_date`. 'N' if the purchase was made before joining or if the customer has no membership date.
+- Ordered the results by `customer_id` and `order_date` to clearly display each customer’s timeline of purchases with their membership status.
+
+```sql
+SELECT s.customer_id, order_date, product_name, price,
+CASE
+	WHEN order_date >= join_date THEN 'Y'
+	ELSE 'N'
+END members
+FROM sales s
+JOIN menu m
+	ON s.product_id = m.product_id
+LEFT JOIN members mb
+	ON s.customer_id = mb.customer_id
+ORDER BY s.customer_id, order_date
+```
+Output:
+| customer_id | order_date | product_name | price | member |
+| ----------- | ---------- | -------------| ----- | ------ |
+| A           | 2021-01-01 | sushi        | 10    | N      |
+| A           | 2021-01-01 | curry        | 15    | N      |
+| A           | 2021-01-07 | curry        | 15    | Y      |
+| A           | 2021-01-10 | ramen        | 12    | Y      |
+| A           | 2021-01-11 | ramen        | 12    | Y      |
+| A           | 2021-01-11 | ramen        | 12    | Y      |
+| B           | 2021-01-01 | curry        | 15    | N      |
+| B           | 2021-01-02 | curry        | 15    | N      |
+| B           | 2021-01-04 | sushi        | 10    | N      |
+| B           | 2021-01-11 | sushi        | 10    | Y      |
+| B           | 2021-01-16 | ramen        | 12    | Y      |
+| B           | 2021-02-01 | ramen        | 12    | Y      |
+| C           | 2021-01-01 | ramen        | 12    | N      |
+| C           | 2021-01-01 | ramen        | 12    | N      |
+| C           | 2021-01-07 | ramen        | 12    | N      |
+
+Rank All The Things
+
+Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.
+
+Approach:
+- Reused the unified view of transactions and membership status created in the previous bonus question as a CTE (members_rank).
+- Within this CTE, included columns such as `customer_id`, `order_date`, `product_name`, `price`, and a calculated `member_status` field (Y or N).
+- In the main query, applied a `RANK()` window function to rank purchases only for transactions where `member_status = 'Y'`.
+- Used a CASE expression to ensure that when `member_status = 'N'`, the ranking value is returned as `NULL`, since non-member purchases should not be ranked.
+- Partitioned the ranking by `customer_id`  and `member status` then ordered it by `order_date` to give each customer’s membership purchases a sequential rank.
+
+```sql
+WITH members_rank AS
+(
+SELECT s.customer_id, order_date, product_name, price,
+CASE
+	WHEN order_date >= join_date THEN 'Y'
+	ELSE 'N'
+END member_status
+FROM sales s
+JOIN menu m
+	ON s.product_id = m.product_id
+LEFT JOIN members mb
+	ON s.customer_id = mb.customer_id
+ORDER BY s.customer_id, order_date
+)
+SELECT *,
+CASE 
+	WHEN member_status = 'N' THEN NULL
+	ELSE
+RANK() OVER(PARTITION BY customer_id, member_status ORDER BY order_date) 
+END AS ranking
+FROM members_rank
+```
+
+Output:
+| customer_id | order_date | product_name | price | member | ranking | 
+|-------------|------------|--------------|-------|--------|---------|
+| A           | 2021-01-01 | sushi        | 10    | N      | NULL    | 
+| A           | 2021-01-01 | curry        | 15    | N      | NULL    |
+| A           | 2021-01-07 | curry        | 15    | Y      | 1       |
+| A           | 2021-01-10 | ramen        | 12    | Y      | 2       |
+| A           | 2021-01-11 | ramen        | 12    | Y      | 3       |
+| A           | 2021-01-11 | ramen        | 12    | Y      | 3       |
+| B           | 2021-01-01 | curry        | 15    | N      | NULL    |
+| B           | 2021-01-02 | curry        | 15    | N      | NULL    |
+| B           | 2021-01-04 | sushi        | 10    | N      | NULL    |
+| B           | 2021-01-11 | sushi        | 10    | Y      | 1       |
+| B           | 2021-01-16 | ramen        | 12    | Y      | 2       |
+| B           | 2021-02-01 | ramen        | 12    | Y      | 3       |
+| C           | 2021-01-01 | ramen        | 12    | N      | NULL    |
+| C           | 2021-01-01 | ramen        | 12    | N      | NULL    |
+| C           | 2021-01-07 | ramen        | 12    | N      | NULL    |
 
