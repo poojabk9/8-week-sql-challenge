@@ -3,7 +3,7 @@
 
 ## Overview
 - [Problem Statement](#problem-statement)
-- [Data Set](#data-set)
+- [Database Schema](#database-schema)
 - [Questions and Solutions](#questions-and-solutions)
 
 ### Problem Statement
@@ -11,7 +11,7 @@ Danny wants to use the data to answer a few simple questions about his customers
 
 ***
 
-### Data Set
+### Database Schema
 
 Danny’s Diner contains 3 tables:
 
@@ -60,8 +60,7 @@ Output:
 #### Q2. How many days has each customer visited the restaurant?
 
 Approach:
-- Selected `customer_id` and applied `COUNT(DISTINCT order_date)` to calculate the number of unique days each customer visited.
-- Ensured duplicate visits on the same day were counted only once per customer.
+- Selected `customer_id` from `sales` table and applied `COUNT(DISTINCT order_date)` to calculate the number of unique days each customer visited, and assigned the alias `no_of_Days`. `DISTINCT` ensures duplicate visits on the same day were counted only once per customer.
 - Grouped results by `customer_id` to summarize visits per customer.
   
 ```sql
@@ -74,7 +73,7 @@ GROUP BY customer_id;
 
 Output:
 - `customer_id` -> Identifies the customer.
-- `money_spent` -> Number of days each customer visited.
+- `no_of_Days` -> Number of days each customer visited the Diner.
 
 | customer_id | no_of_Days  |
 |-------------|-------------|
@@ -158,13 +157,13 @@ LIMIT 1
 ```
 
 Approach 2: Handeling ties (In case there are more than one popular item)
-- Aggregate purchases per product in a CTE (CTE1) by grouping sales on `product_id` and counting how many times each product was sold.
-- Join the aggregated results with the `menu` table to get the product names.
-- In a second CTE (CTE2), assign ranks to products using the RANK() window function, ordered by `purchase_count` descending.
-- Filter to only include rows where `rnk = 1`, ensuring all top-ranked items appear in case of a tie.
+- Aggregated purchases per product in a CTE `count_of_product_purchased` by grouping sales on `product_id` and counting how many times each product was sold.
+- Joined the aggregated results with the `menu` table to get the product names.
+- In a second CTE `ranked_products`, assigned ranks to products using the RANK() window function, ordered by `purchase_count` in descending.
+- Filtered to only include rows where `rnk = 1`, ensuring all top-ranked items appear in case of a tie.
 
 ```sql
-WITH CTE1 AS
+WITH count_of_product_purchased AS
 (
 	SELECT
 		product_id,
@@ -172,20 +171,20 @@ WITH CTE1 AS
 	FROM sales
 	GROUP BY product_id
 ),
-CTE2 As
+ranked_products As
 (
 	SELECT
 		m.product_name,
 		purchase_count, 
 		RANK() OVER (ORDER BY purchase_count DESC) AS rnk
-	FROM CTE c
+	FROM count_of_product_purchased c
 	JOIN menu m
 		ON c.product_id = m.product_id
 )
 SELECT
 	product_name,
 	purchase_count
-FROM CTE2
+FROM ranked_products
 Where rnk = 1
 ```
 
@@ -254,11 +253,11 @@ Output:
 ### Q6. Which item was purchased first by the customer after they became a member?
 
 Approach:
-- Created a CTE membership that joins the sales and members tables to identify purchases made after a customer’s membership join date.
-- Applied DENSE_RANK() partitioned by customer_id and ordered by order_date to rank purchases for each member starting from their join date.
-- Selected only the first ranked purchase (rnk = 1) for each customer.
-- Joined with the menu table to retrieve product names.
-- Displayed the results ordered by customer_id for clarity.
+- Created a CTE membership that joins the `sales` and `members` tables to identify purchases made after a customer’s membership join date.
+- Applied `DENSE_RANK()` partitioned by `customer_id` and ordered by `order_date` to rank purchases for each member starting from their join date.
+- Selected only the first ranked purchase `rnk = 1` for each customer.
+- Joined with the `menu` table to retrieve product names.
+- Displayed the results ordered by `customer_id` for clarity.
 
 ```sql
 WITH members_first_order AS
@@ -302,7 +301,7 @@ Approach:
 - Used the `DENSE_RANK()` function with ORDER BY `order_date` DESC inside the CTE to rank orders in reverse chronological order, so the most recent pre-membership purchase gets rank 1.
 - Filtered only orders where `order_date < join_date` to ensure purchases were strictly before membership started.
 - Selected rows with `last_order_rank = 1` to identify the last order before becoming a member.
-- Joined with the menu table to fetch product names and ordered the results by `customer_id` for clarity.
+- Joined with the `menu` table to fetch product names and ordered the results by `customer_id` for clarity.
 
 ```sql
 WITH last_order AS
