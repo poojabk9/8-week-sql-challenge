@@ -10,8 +10,8 @@ A huge shout out to Danny Ma for creating this awesome challenge! 🙌
 ## 📚 Case Studies  
 My solutions to Danny Ma’s 8 Week SQL Challenge, real-world SQL practice across 8 case studies.
 
-1. [Danny's Diner](https://github.com/poojabk9/8-week-sql-challenge/tree/main/CaseStudy1-DannysDinner)
-2. [Pizza Runner]
+1. [Danny's Diner](https://github.com/poojabk9/8-week-sql-challenge/tree/main/CaseStudy%231-Danny'sDinner)
+2. [Pizza Runner](https://github.com/poojabk9/8-week-sql-challenge/tree/main/CaseStudy%232-PizzaRunner)
 3. [Foodie-Fi]
 4. [Data Bank]
 5. [Data Mart]
