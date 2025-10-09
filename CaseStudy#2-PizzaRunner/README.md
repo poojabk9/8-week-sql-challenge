@@ -77,7 +77,57 @@ clean_customer_orders table:
 |        10|        	104|         1|	NULL	     | NULL	  | 2020-01-11 18:34:49  |
 |        10|        	104|         1|	2, 6	     | 1, 4	  | 2020-01-11 18:34:49  |
 
+
+#### Cleaning Table: customer_orders
+
+Approach:
+- Created a `CTE` to clean the `runner_orders` table by standardizing missing and inconsistent values.
+- Replaced blank strings and 'null' text entries with proper SQL NULL values across all columns.
+- Removed unit labels like 'km', 'minutes', 'minute', and 'mins' from the `distance` and `duration` columns using `REPLACE` and `REGEXP_REPLACE` functions for consistency.
+- Trimmed any extra spaces to ensure clean and uniform data entries.
+- Converted data types in the final `SELECT`:
+  	- `pickup_time` → TIMESTAMP
+  	- `distance_km` → DECIMAL
+    - `duration_min` → INTEGER
+- Created a new cleaned table named `clean_runner_orders` to store the processed and standardized data for further analysis.
+
+```sql
+CREATE TABLE clean_runner_orders AS
+WITH CTE AS 
+( 
+	SELECT order_id, 
+		   runner_id, 
+		   CASE -- CASE statement to replace Blank space and null entries to 'NULL' in pickup_time column 
+		   		WHEN pickup_time is NULL OR pickup_time = '' OR pickup_time = 'null' THEN NULL 
+		   		ELSE pickup_time 
+		   END, 
+		   CASE -- CASE statement to replace Blank space and null entries to 'NULL' and removing the unit in distance column 
+		   		WHEN distance is NULL OR distance = '' OR distance = 'null' THEN NULL 
+		   		ELSE TRIM(REPLACE(distance, 'km', '')) 
+		   END distance_km, 
+		   CASE -- CASE statement to replace Blank space and null entries to 'NULL' and removing the unit in duration column 
+		   		WHEN duration is NULL OR duration = '' OR duration = 'null' THEN NULL 
+				ELSE TRIM(REGEXP_REPLACE(duration, '(minutes|minute|mins)', '', 'gi')) 
+			END duration_min, 
+			CASE -- CASE statement to replace Blank space and null entries to 'NULL' in cancellation column 
+				WHEN cancellation is NULL OR cancellation = '' OR cancellation = 'null' THEN NULL 
+				ELSE cancellation 
+			END 
+	FROM runner_orders
+) 
+SELECT 
+	order_id, 
+	runner_id, 
+	-- Standardising the datatype of pickup_time, distance_km, and duration_min columns 
+	CAST(pickup_time AS TIMESTAMP) AS pickup_time, 
+	CAST(distance_km AS DECIMAL) AS distance_km, 
+	CAST(duration_min AS INTEGER) AS duration_min, 
+	cancellation 
+FROM CTE;
+```
+
 ***
 
 ### Questions and Solutions
+
 
