@@ -91,3 +91,68 @@ Output:
 |------------|-----------------|
 | Vegetarian |               3 |
 | Meatlovers |               9 |
+
+#### Q5. How many Vegetarian and Meatlovers were ordered by each customer?
+
+Approach:
+- Joined the `clean_customer_orders` table with `pizza_names` to link each order with its corresponding pizza type.
+- Grouped the data by `customer_id` and `pizza_name` to categorize orders for each customer by pizza type.
+- Used the `COUNT(pizza_name)` function to calculate how many Vegetarian and Meatlovers pizzas each customer ordered.
+- Ordered the results by `customer_id` for clear and organized output.
+
+```sql
+SELECT c.customer_id, p.pizza_name, COUNT(p.pizza_name)
+FROM clean_customer_orders c
+JOIN pizza_names p
+	ON c.pizza_id = p.pizza_id
+GROUP BY c.customer_id, p.pizza_name
+ORDER BY c.customer_id
+```
+
+Output:
+- `customer_id` -> Customer ID
+- `pizza_name` -> Name of the Pizza
+- `no_of_pizza` -> Number of each type of pizza's ordered by individual customer.
+
+| customer_id | pizza_name | no_of_pizza |
+|-------------|------------|-------------|
+|         101 |	Meatlovers |	       2 |
+|         101 | Vegetarian |	       1 |
+|         102 |	Meatlovers |	       2 |
+|         102 |	Vegetarian |	       1 |
+|         103 |	Meatlovers |           3 | 
+|         103 |	Vegetarian | 	       1 |
+|         104 |	Meatlovers |           3 |
+|         105 |	Vegetarian |      	   1 |
+
+#### Q6. What was the maximum number of pizzas delivered in a single order?
+
+Approach:
+-  Joined `clean_customer_orders` with `clean_runner_orders` to include only delivered orders by filtering out records with cancellations.
+- Grouped the data by `order_id` and counted the number of pizzas in each order to determine how many pizzas were delivered per order.
+- Used a Common Table Expression (CTE) `max_pizza` to store these counts for readability.
+- Retrieved the maximum pizza count across all orders using the `MAX()` function to identify the maximum number of pizzas delivered in a single order.
+
+```sql
+WITH max_pizza AS
+(
+SELECT c.order_id, COUNT(c.order_id) AS count_order_id
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+WHERE cancellation is NULL
+GROUP BY c.order_id
+ORDER BY c.order_id
+)
+SELECT MAX(count_order_id) AS max_pizza_delivered
+FROM max_pizza
+```
+
+Output:
+-
+
+| max_pizza_delivered | 
+|---------------------|
+|                   3 |
+
+
