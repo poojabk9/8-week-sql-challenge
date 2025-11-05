@@ -11,7 +11,7 @@ Approach:
 
 ```sql
 SELECT COUNT(order_id) AS no_of_pizza
-FROM clean_customer_orders
+FROM clean_customer_orders;
 ```
 
 Output:
@@ -19,7 +19,9 @@ Output:
 
 | no_of_pizza |
 |-------------|
-|          14	|	
+|          14 |
+
+***
 
 #### Q2. How many unique customer orders were made?
 
@@ -30,7 +32,7 @@ Approach:
 
 ```sql
 SELECT COUNT(DISTINCT(order_id)) AS unique_customer_orders
-FROM clean_customer_orders
+FROM clean_customer_orders;
 ```
 
 Output:
@@ -51,7 +53,7 @@ Approach:
 SELECT runner_id, COUNT(runner_id) AS successful_orders
 FROM clean_runner_orders
 WHERE cancellation is NULL
-GROUP BY runner_id
+GROUP BY runner_id;
 ```
 
 Output:
@@ -63,6 +65,8 @@ Output:
 |         1 |                 4 |
 |         2 |                 3 |
 |         3 |                 1 |
+
+***
 
 #### Q4. How many of each type of pizza was delivered?
 
@@ -80,7 +84,7 @@ JOIN clean_runner_orders r
 JOIN pizza_names p
 	ON c.pizza_id = p.pizza_id
 WHERE r.cancellation is NULL
-GROUP BY p.pizza_name
+GROUP BY p.pizza_name;
 ```
 
 Output:
@@ -91,6 +95,8 @@ Output:
 |------------|-----------------|
 | Vegetarian |               3 |
 | Meatlovers |               9 |
+
+***
 
 #### Q5. How many Vegetarian and Meatlovers were ordered by each customer?
 
@@ -106,7 +112,7 @@ FROM clean_customer_orders c
 JOIN pizza_names p
 	ON c.pizza_id = p.pizza_id
 GROUP BY c.customer_id, p.pizza_name
-ORDER BY c.customer_id
+ORDER BY c.customer_id;
 ```
 
 Output:
@@ -124,6 +130,8 @@ Output:
 |         103 |	Vegetarian | 	       1 |
 |         104 |	Meatlovers |           3 |
 |         105 |	Vegetarian |      	   1 |
+
+***
 
 #### Q6. What was the maximum number of pizzas delivered in a single order?
 
@@ -145,14 +153,50 @@ GROUP BY c.order_id
 ORDER BY c.order_id
 )
 SELECT MAX(count_order_id) AS max_pizza_delivered
-FROM max_pizza
+FROM max_pizza;
 ```
 
 Output:
--
+- `max_pizza_delivered` -> 3 is the maximum number of pizzas delivered in a single order
 
 | max_pizza_delivered | 
 |---------------------|
 |                   3 |
+
+***
+
+#### Q7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+
+Approach:
+- Joined `clean_customer_orders` and `clean_runner_orders` on `order_id` to include only delivered pizzas (cancellation IS NULL).
+- Used conditional aggregation to classify pizzas as having changes (when exclusions or extras are not NULL) or no changes (when both are NULL).
+- Applied `SUM` with `CASE` statements to count pizzas in each category for every customer.
+- Grouped results by `customer_id` to display the number of changed and unchanged pizzas per customer.
+
+```sql
+SELECT c.customer_id,
+	   SUM(CASE WHEN exclusions is NULL AND extras is NULL THEN 1 ELSE 0 END) AS pizzas_without_changes,
+	   SUM(CASE WHEN exclusions is NOT NULL OR extras is NOT NULL THEN 1 ELSE 0 END) AS pizzas_with_changes
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+WHERE r.cancellation is NULL
+GROUP BY c.customer_id;
+```
+
+Output:
+- `customer_id` -> Unique Customer ID
+- `pizzas_without_changes` -> Number of pizza that were customized by each customer
+- `pizzas_with_changes` -> Number of pizza that were not customised by the customer.
+
+| customer_id | pizzas_without_changes | pizzas_with_changes |
+|-------------|------------------------|---------------------|
+|         101 |                      2 |                   0 |
+|         102 |                      3 |                   0 |
+|         103 |                      0 |                   3 |
+|         104 |                      1 |                   2 |
+|         105 |                      0 |                   1 |
+
+
 
 
