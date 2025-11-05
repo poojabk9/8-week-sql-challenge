@@ -197,6 +197,37 @@ Output:
 |         104 |                      1 |                   2 |
 |         105 |                      0 |                   1 |
 
+***
 
+#### Q8. How many pizzas were delivered that had both exclusions and extras?
+
+Approach:
+- Joined `clean_customer_orders` and `clean_runner_orders` tables using `order_id` to include only delivered pizzas (cancellation IS NULL).
+- Used a `CASE` statement within a `SUM` function to count pizzas where both exclusions and extras are not NULL, indicating that customers requested both modifications.
+- Returned the total count of such pizzas as `pizza_count_with_exclusions_extras`
+
+```sql
+SELECT 
+	SUM(CASE WHEN exclusions is NOT NULL AND extras is NOT NULL THEN 1 ELSE 0 END) AS pizza_count_with_exclusions_extras
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+WHERE r.cancellation is NULL
+```
+
+Output:
+- `pizza_count_with_exclusions_extras` -> Count of pizzas delivered that had both exclusions and extras. 
+
+| pizza_count_with_exclusions_extras |
+|------------------------------------|
+|                                  1 |
+
+***
+
+#### Q9. What was the total volume of pizzas ordered for each hour of the day?
+
+***
+
+#### Q10. What was the volume of orders for each day of the week?
 
 
