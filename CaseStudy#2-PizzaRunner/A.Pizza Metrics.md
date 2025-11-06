@@ -227,7 +227,9 @@ Output:
 #### Q9. What was the total volume of pizzas ordered for each hour of the day?
 
 Approach:
--
+- Extracted the hour component from the `order_time` column using `EXTRACT(HOUR FROM order_time)` to identify the hour each order was placed.
+- Grouped the data by the extracted hour to count the total number of pizzas ordered during each hour of the day.
+- Ordered the results by hour to visualize the distribution of pizza orders throughout the day in chronological order.
 
 ```sql
 SELECT
@@ -239,13 +241,45 @@ ORDER BY hour_of_the_day;
 ```
 
 Output:
-- `hour_of_the_day` -> Count of pizzas delivered that had both exclusions and extras.
-- `pizza_count` -> 
+- `hour_of_the_day` -> Represents the hour of the day.
+- `pizza_count` -> Number of Pizzas ordered by the hour.
 
 | hour_of_the_day | pizza_count |
+|-----------------|-------------|
+|              11 |           1 |
+|              13 |           3 |
+|              18 |           3 |
+|              19 |           1 |
+|              21 |           3 |
+|              23 |           3 |
 
 ***
 
 #### Q10. What was the volume of orders for each day of the week?
 
+Approach:
+- Extracted the weekday name from the `order_time` column using the `TO_CHAR()` function with the 'Day' format.
+- Counted the total number of pizzas ordered for each day using the `COUNT()` aggregate function.
+- Grouped the results by the extracted day name to get the total orders per weekday.
+- Ordered the final output by `Day_of_the_week` for a clean, readable summary.
+
+```sql
+SELECT 
+	TO_CHAR(order_time, 'Day') AS day_of_the_week,
+	COUNT(order_id) AS pizza_count
+FROM clean_customer_orders
+GROUP BY Day_of_the_week
+ORDER BY Day_of_the_week;
+```
+
+Output:
+- `hour_of_the_day` -> Represents the day of the week.
+- `pizza_count` -> Number of Pizzas ordered on a weekday.
+
+| day_of_the_week | pizza_count |
+|-----------------|-------------|
+|       Wednesday |           5 |
+|        Thursday |           3 |
+|        Saturday |           5 |
+|          Friday |           1 |
 
