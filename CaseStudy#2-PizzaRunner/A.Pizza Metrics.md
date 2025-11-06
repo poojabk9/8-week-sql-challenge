@@ -226,6 +226,24 @@ Output:
 
 #### Q9. What was the total volume of pizzas ordered for each hour of the day?
 
+Approach:
+-
+
+```sql
+SELECT
+	EXTRACT(HOUR FROM order_time) AS hour_of_the_day,
+	COUNT(order_time) AS pizza_count
+FROM clean_customer_orders
+GROUP BY hour_of_the_day
+ORDER BY hour_of_the_day;
+```
+
+Output:
+- `hour_of_the_day` -> Count of pizzas delivered that had both exclusions and extras.
+- `pizza_count` -> 
+
+| hour_of_the_day | pizza_count |
+
 ***
 
 #### Q10. What was the volume of orders for each day of the week?
