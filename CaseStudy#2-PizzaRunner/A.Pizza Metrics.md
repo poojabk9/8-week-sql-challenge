@@ -42,6 +42,8 @@ Output:
 |------------------------|
 |                     10 |
 
+***
+
 #### Q3. How many successful orders were delivered by each runner?
 
 Approach:
