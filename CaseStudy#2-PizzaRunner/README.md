@@ -145,5 +145,6 @@ clean_runner_orders:
 
 ### Questions and Solutions
 
+[A. Pizza Metrics](https://github.com/poojabk9/8-week-sql-challenge/blob/main/CaseStudy%232-PizzaRunner/A.Pizza%20Metrics.md)
 
 
