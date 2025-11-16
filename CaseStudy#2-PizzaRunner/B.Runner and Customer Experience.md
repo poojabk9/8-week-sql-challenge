@@ -23,8 +23,8 @@ ORDER BY week_number
 ```
 
 Output:
-- week_number -> Number of each week starting from DATE '2021-01-01'.
-- count_of_runners -> Number of runners signed up during each week.
+- `week_number` -> Number of each week starting from DATE '2021-01-01'.
+- `count_of_runners` -> Number of runners signed up during each week.
 
 | week_number | count_of_runners |
 |-------------|------------------|
@@ -35,6 +35,35 @@ Output:
 ***
 
 #### Q2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+
+Approach:
+- Joined `clean_customer_orders` and `clean_runner_orders` to match each order with its corresponding runner.
+- Calculated the pickup time delay by subtracting the customer’s `order_time` from the runner’s `pickup_time`.
+- Converted the time difference into minutes using `EXTRACT(EPOCH)` (which returns seconds) and dividing by 60.
+- Used `AVG()` to compute the average pickup time for each runner.
+- Applied `ROUND(..., 2)` to format the result to two decimal places for cleaner readability.
+- Grouped the results by runner_id to show each runner’s average pickup time.
+
+```sql
+SELECT
+	r.runner_id, 
+	ROUND(AVG(EXTRACT(EPOCH FROM(r.pickup_time - c.order_time)) / 60), 2) AS avg_pickup_time_minutes
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+GROUP BY r.runner_id
+ORDER BY r.runner_id;
+```
+
+Output:
+- `runner_id` -> Identifies each runner.
+- `avg_pickup_time_minutes` -> Average minutes taken by each runner to arrive at the Pizza Runner HQ to pickup the order.
+
+| runner_id | avg_pickup_time_minutes |
+|-----------|-------------------------|
+|         1 |                   15.68 |
+|         2 |                   23.72 |
+|         3 |                   10.47 |
 
 ***
 
