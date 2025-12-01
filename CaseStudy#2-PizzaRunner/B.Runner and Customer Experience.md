@@ -69,6 +69,51 @@ Output:
 
 #### Q3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
 
+Approach:
+- Joined the `clean_customer_orders` and `clean_runner_orders` tables to link each order with its pickup timestamp.
+- Created a CTE `prep_time` to calculate preparation details at the order level:
+  	- Counted how many pizzas were included in each order.
+  	- Calculated the prep time in minutes by taking the difference between pickup_time and order_time, converting the result from seconds to minutes using `EXTRACT(EPOCH FROM …) / 60`.
+- In the final step, grouped by the number of pizzas in an order to understand how prep time varies with order size.
+- Calculated the average preparation time for each pizza count and rounded the result for better readability.
+- Ordered the results by pizza count to clearly observe patterns or correlations.
+
+
+```sql
+WITH prep_time AS
+(
+SELECT 
+	c.order_id, 
+	c.order_time, 
+	r.pickup_time, 
+	COUNT(c.order_id) AS no_of_pizzas,
+	EXTRACT(EPOCH FROM(r.pickup_time - c.order_time)) / 60 AS prep_time_minutes
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+GROUP BY c.order_id, c.order_time, r.pickup_time
+)
+SELECT  
+	no_of_pizzas,
+	ROUND(AVG(prep_time_minutes), 2) AS avg_prep_time_minutes
+FROM prep_time
+GROUP BY no_of_pizzas
+ORDER BY no_of_pizzas:
+```
+
+Output:
+- `no_of_pizzas` -> Pizzas ordered at a time.
+- `avg_prep_time_minutes` -> Average time in minutes to prepare the order.
+
+- The results show a positive relationship between the number of pizzas in an order and the average preparation time.
+As the pizza count increases, the time taken for the order to be prepared also increases. This trend is expected, since larger orders require more cooking and assembly effort.
+
+| no_of_pizzas | avg_prep_time_minutes |
+|--------------|-----------------------|
+|            1 |                 12.36 |
+|            2 |                 18.38 |
+|            3 |                 29.28 |
+
 ***
 
 #### Q4. What was the average distance travelled for each customer?
