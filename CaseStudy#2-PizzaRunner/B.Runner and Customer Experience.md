@@ -118,6 +118,39 @@ As the pizza count increases, the time taken for the order to be prepared also i
 
 #### Q4. What was the average distance travelled for each customer?
 
+Approach:
+- Joined the tables `clean_customer_orders` and `clean_runner_orders` using the shared `order_id` to connect each customer with the corresponding delivery distance.
+- Filtered out rows where `distance_km` is NULL to ensure only valid distance values are used in the calculation.
+- Grouped the data by each `customer_id`, so the calculation is performed individually for every customer.
+- Calculated the average distance travelled per customer using `AVG(distance_km)` and `round` the result to 2 decimal places for readability.
+- Sorted the output by `customer_id` to keep the results tidy and easy to interpret.
+
+```sql
+SELECT
+	c.customer_id,
+	ROUND(AVG(r.distance_km), 2) AS avg_distance
+FROM clean_customer_orders c
+JOIN clean_runner_orders r
+	ON c.order_id = r.order_id
+WHERE r.distance_km IS NOT NULL
+GROUP BY c.customer_id
+ORDER BY c.customer_id;
+```
+
+Output:
+- `customer_id` -> Unique Customer ID.
+- `avg_distance` -> Average distance travelled for each customer.
+
+- The results reveal ordering patterns—some customers tend to order from farther away, while others consistently place nearby orders.
+
+| customer_id | avg_distance |
+|-------------|--------------|
+|         101 |        20.00 |
+|         102 |        16.73 |
+|         103 |        23.40 |
+|         104 |        10.00 |
+|         105 |        25.00 |
+
 ***
 
 #### Q5. What was the difference between the longest and shortest delivery times for all orders?
