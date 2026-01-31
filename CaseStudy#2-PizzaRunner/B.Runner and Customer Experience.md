@@ -19,7 +19,7 @@ SELECT
 	COUNT(runner_id) AS count_of_runners
 FROM runners
 GROUP BY week_number
-ORDER BY week_number
+ORDER BY week_number;
 ```
 
 Output:
@@ -98,7 +98,7 @@ SELECT
 	ROUND(AVG(prep_time_minutes), 2) AS avg_prep_time_minutes
 FROM prep_time
 GROUP BY no_of_pizzas
-ORDER BY no_of_pizzas:
+ORDER BY no_of_pizzas;
 ```
 
 Output:
@@ -155,10 +155,107 @@ Output:
 
 #### Q5. What was the difference between the longest and shortest delivery times for all orders?
 
+Approach:
+- Used the `clean_runner_orders` dataset and excluded cancelled orders to focus only on completed deliveries
+- Identified delivery duration (in minutes) as the key metric for comparison
+- Calculated the longest and shortest delivery times using aggregate functions
+- Subtracted the minimum delivery time from the maximum delivery time to determine the overall difference in delivery duration across all orders
+
+```sql
+SELECT
+	(MAX(duration_min) - MIN(duration_min)) AS diff_delivery_time_min
+FROM clean_runner_orders
+WHERE cancellation IS NULL;
+```
+
+Output:
+- `diff_delivery_time_min` -> The difference between longest and shortest delivery times for all orders is `30`
+
+| diff_delivery_time_min |
+|------------------------|
+|                     30 | 
 ***
 
 #### Q6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
 
+Approach:
+- Used the `clean_runner_orders` table and excluded all cancelled deliveries to ensure only completed orders were analysed
+- Identified distance (kilometres) and duration (minutes) as the key inputs required to calculate delivery speed
+- Converted delivery duration from minutes to hours to calculate speed in kilometres per hour (km/h)
+- Cast the duration column to a numeric data type during calculation to avoid integer division and maintain accuracy
+- Calculated average speed at the delivery level to evaluate individual runner performance per order
+- Aggregated delivery-level speeds by runner to analyse overall performance trends across runners
+
+
+```sql
+SELECT
+	runner_id,
+	order_id,
+	distance_km,
+	duration_min,
+	ROUND((distance_km / ( duration_min::NUMERIC / 60)), 2) AS speed_kmph
+FROM clean_runner_orders
+WHERE cancellation IS NULL;
+```
+```sql
+SELECT
+	runner_id,
+	ROUND(AVG((distance_km / (duration_min::NUMERIC / 60))), 2) AS avg_speed_kmph
+FROM clean_runner_orders
+WHERE cancellation IS NULL
+GROUP BY runner_id;
+```
+
+Output:
+- `runner_id` -> Identifies each runner.
+- `avg_speed_kmph` -> Average delivery speed of each runners.
+
+| runner_id | avg_speed_kmph |
+|-----------|----------------|
+|         1 |          45.54 |
+|         2 |          62.90 |
+|         3 |          40.00 |
+
+Key Insights:
+- Runner 1 shows a clear relationship between distance and speed, delivering faster on shorter routes and slower on longer deliveries
+- Runner 2 completed three deliveries of similar distances, yet the delivery speeds vary noticeably, indicating inconsistency in delivery performance
+- Runner 3 completed only a single delivery; however, the average speed for this delivery is comparable to Runner 1’s average speed, though the limited sample size prevents meaningful performance comparison
+
 ***
 
 #### Q7. What is the successful delivery percentage for each runner?
+
+Approach:
+- Used the 'clean_runner_orders' dataset containing all runner assignments
+- Considered a delivery successful when the cancellation field is NULL
+- Counted the total number of orders assigned to each runner
+- Counted successful deliveries per runner using conditional aggregation
+- Calculated the successful delivery percentage by dividing successful deliveries by total deliveries and multiplying by 100
+- Rounded the final percentage values for readability and clarity
+
+```sql
+SELECT
+	runner_id,
+	ROUND(
+		COUNT(
+			CASE 
+				WHEN cancellation is NULL THEN order_id
+			END
+		) * 100.0 / COUNT(order_id), 2
+	) AS delivery_percentage
+FROM clean_runner_orders
+GROUP BY runner_id
+ORDER BY runner_id;
+```
+
+Output:
+- `runner_id` -> Identifies each runner.
+- `delivery_percentage` -> Successful delivery percentage of each runners.
+
+| runner_id | delivery_percentage |
+|-----------|---------------------|
+|         1 |              100.00 |
+|         2 |               75.00 |
+|         3 |               50.00 |
+
+- Successful delivery rates vary across runners, indicating differences in delivery completion performance
