@@ -147,6 +147,8 @@ clean_runner_orders:
 
 - [A. Pizza Metrics](https://github.com/poojabk9/8-week-sql-challenge/blob/main/CaseStudy%232-PizzaRunner/A.Pizza%20Metrics.md)
 - [B. Runner and Customer Experience](https://github.com/poojabk9/8-week-sql-challenge/blob/main/CaseStudy%232-PizzaRunner/B.Runner%20and%20Customer%20Experience.md)
+- [C. Ingredient Optimisation](https://github.com/poojabk9/8-week-sql-challenge/blob/main/CaseStudy%232-PizzaRunner/C.Ingredient%20Optimisation.md)
+
 
 
 
