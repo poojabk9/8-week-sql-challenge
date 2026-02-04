@@ -2,26 +2,6 @@
 
 ### Questions and Solutions
 
-#### Q1. How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
-
-Approach:
-- 
-
-```sql
-
-```
-
-Output:
-- 
-
-| week_number | count_of_runners |
-|-------------|------------------|
-|           1 |                2 |
-|           2 |                1 |
-|           3 |                1 |
-
-***
-
 #### Q1. What are the standard ingredients for each pizza?
 
 Approach:
