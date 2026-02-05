@@ -5,13 +5,13 @@
 #### Q1. What are the standard ingredients for each pizza?
 
 Approach:
-- Identified that the `toppings` column in `pizza_recipes` contains comma-separated topping IDs, which need to be normalized before analysis.
-- Split the toppings string into individual topping IDs using `regexp_split_to_array` and `UNNEST`.
-- Cast each extracted topping ID to an integer to enable accurate joins.
-- Created a Common Table Expression (CTE) to make the transformation step clear and reusable.
-- Joined the normalized topping IDs with `pizza_toppings` to retrieve human-readable topping names.
+- Identified that the `toppings` column in `pizza_recipes` contains comma-separated `topping IDs`, which need to be normalized before analysis.
+- Split the toppings string into individual `topping IDs` using `regexp_split_to_array` and `UNNEST`.
+- Cast each extracted `topping ID` to an integer to enable accurate joins.
+- Created a Common Table Expression (CTE) `toppings_names` to make the transformation step clear and reusable.
+- Joined the normalized `topping IDs` with `pizza_toppings` to retrieve human-readable topping names.
 - Joined with `pizza_names` to associate each pizza with its corresponding toppings.
-- Aggregated topping names back into a single, comma-separated list per pizza using `STRING_AGG`.
+- Aggregated `topping names` back into a single, comma-separated list per pizza using `STRING_AGG`.
 - Grouped results by `pizza name` to produce one row per pizza with its standard ingredients
 
 ```sql
@@ -45,6 +45,40 @@ Output:
 ***
 
 #### Q2. What was the most commonly added extra?
+
+Approach:
+- Identified that the extras column in `clean_customer_orders` contains comma-separated `topping IDs`.
+- Filtered out records where no extras were added to focus only on modified orders.
+- Split the extras string into individual `topping IDs` using `regexp_split_to_array` and `UNNEST`.
+- Cast each extracted value to an integer to allow accurate joins.
+- Joined the normalized `topping IDs` with the `pizza_toppings` lookup table to retrieve topping names.
+- Counted the frequency of each extra topping to determine how often it was added.
+- Sorted the results in descending order and selected the top result to identify the most commonly added extra.
+
+```sql
+WITH CTE AS
+(
+SELECT 
+	UNNEST(regexp_split_to_array(extras, ', '))::INTEGER extras
+FROM clean_customer_orders
+WHERE extras IS NOT NULL
+)
+SELECT topping_name, (COUNT(topping_name)) AS extra_count
+FROM CTE e
+JOIN pizza_toppings t
+	ON e.extras = t.topping_id
+GROUP BY topping_name
+ORDER BY extra_count DESC
+LIMIT 1;
+```
+
+Output:
+- `topping_name` -> Most commonly added extra
+- `extra_count` -> Number of times the most commonly added extra was used
+
+| topping_name | extra_count |
+|--------------|-------------|
+| Bacon        |           4 |
 
 ***
 
