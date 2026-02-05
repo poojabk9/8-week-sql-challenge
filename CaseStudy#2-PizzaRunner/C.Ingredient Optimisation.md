@@ -63,7 +63,9 @@ SELECT
 FROM clean_customer_orders
 WHERE extras IS NOT NULL
 )
-SELECT topping_name, (COUNT(topping_name)) AS extra_count
+SELECT
+	topping_name,
+	(COUNT(topping_name)) AS extra_count
 FROM CTE e
 JOIN pizza_toppings t
 	ON e.extras = t.topping_id
