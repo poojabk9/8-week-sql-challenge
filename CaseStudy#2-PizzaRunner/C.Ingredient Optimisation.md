@@ -86,6 +86,42 @@ Output:
 
 #### Q3. What was the most common exclusion?
 
+Approach:
+- Identified that the `exclusions` column contains comma-separated `topping IDs` that need to be normalized.
+- Filtered out orders without `exclusions` to focus only on modified pizzas.
+- Split the `exclusions` string into individual `topping IDs` using `regexp_split_to_array` and `UNNEST`.
+- Cast the extracted values to integers to ensure accurate joins.
+- Joined the normalized `exclusions` with the `pizza_toppings` table to obtain topping names.
+- Counted how frequently each topping was excluded across all orders.
+- Sorted the results in descending order and selected the top result to identify the most commonly excluded topping.
+
+```sql
+WITH exclusion_CTE AS
+(
+	SELECT 
+		UNNEST(regexp_split_to_array(exclusions, ', '))::INTEGER AS excluded_toppings
+	FROM clean_customer_orders c
+	WHERE exclusions IS NOT NULL
+)
+SELECT
+	t.topping_name,
+	COUNT(e.excluded_toppings) AS exclusion_count
+FROM exclusion_CTE e
+JOIN pizza_toppings t
+	ON e.excluded_toppings = t.topping_id
+GROUP BY t.topping_name
+ORDER BY exclusion_count DESC
+LIMIT 1;
+```
+Output:
+- `topping_name` -> Most commonly excluded topping
+- `extra_count` -> Number of times the topping was excluded
+
+| topping_name | exclusion_count |
+|--------------|-----------------|
+| Cheese       |               4 |
+
+
 ***
 
 #### Q4. Generate an order item for each record in the customers_orders table in the format of one of the following:
